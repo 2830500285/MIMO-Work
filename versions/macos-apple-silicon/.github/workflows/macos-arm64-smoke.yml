@@ -1,0 +1,112 @@
+name: macOS Apple Silicon Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/mimo-work-macos-arm64-ci
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Build and smoke on macOS arm64
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      MIMO_WORK_MIMO_API_KEY: ${{ secrets.MIMO_WORK_MIMO_API_KEY }}
+      MIMO_WORK_CORE_DIR: ${{ github.workspace }}/work/mimo-runtime-core/MIMO-Work-Core
+
+    steps:
+      - name: Check runner architecture
+        run: |
+          uname -a
+          sysctl -n machdep.cpu.brand_string || true
+
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prepare macOS arm64 runtime
+        run: npm run prepare:mimo-runtime:mac-arm64
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run packaging and runtime tests
+        run: >
+          npx vitest run
+          src/main/packaging-config.test.ts
+          src/main/app-identity.test.ts
+          src/main/runtime/mimo-work-adapter.test.ts
+          src/main/kun-health.test.ts
+
+      - name: Build macOS arm64 dir app
+        run: MIMO_WORK_DIST_DIR="$PWD/dist/macos-arm64-dir-script" npm run dist:mac:dir
+
+      - name: Static smoke packaged app
+        run: >
+          npm run smoke:mac:arm64 --
+          --app "dist/macos-arm64-dir-script/mac-arm64/MIMO Work.app"
+          --static-only
+
+      - name: Verify smoke secret is present
+        run: |
+          if [[ -z "${MIMO_WORK_MIMO_API_KEY:-}" ]]; then
+            echo "::error::MIMO_WORK_MIMO_API_KEY secret is required for health and prompt smoke."
+            exit 1
+          fi
+
+      - name: Full smoke packaged app
+        run: >
+          npm run smoke:mac:arm64 --
+          --app "dist/macos-arm64-dir-script/mac-arm64/MIMO Work.app"
+
+      - name: Build macOS arm64 DMG
+        run: MIMO_WORK_DIST_DIR="$PWD/dist/macos-arm64-release" MIMO_WORK_TARGET_ARCH=arm64 npm run dist:mac:arm64:dmg
+
+      - name: Build macOS arm64 ZIP
+        run: MIMO_WORK_DIST_DIR="$PWD/dist/macos-arm64-release" npm run dist:mac:arm64:zip
+
+      - name: Static smoke release app
+        run: >
+          npm run smoke:mac:arm64 --
+          --app "dist/macos-arm64-release/mac-arm64/MIMO Work.app"
+          --static-only
+
+      - name: Inspect macOS arm64 release artifacts
+        run: |
+          set -euo pipefail
+          find dist/macos-arm64-release -maxdepth 2 -type f \
+            \( -name 'MIMO-Work-*-mac-arm64.dmg' -o -name 'MIMO-Work-*-mac-arm64.zip' \) \
+            -print -exec shasum -a 256 {} \;
+
+      - name: Upload packaged app
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mimo-work-macos-arm64-dir
+          if-no-files-found: warn
+          retention-days: 7
+          path: dist/macos-arm64-dir-script/mac-arm64/MIMO Work.app
+
+      - name: Upload release artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mimo-work-macos-arm64-release
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            dist/macos-arm64-release/MIMO-Work-*-mac-arm64.dmg
+            dist/macos-arm64-release/MIMO-Work-*-mac-arm64.zip
+            dist/macos-arm64-release/mac-arm64/MIMO Work.app
