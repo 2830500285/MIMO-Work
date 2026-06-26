@@ -20,13 +20,21 @@ This public repository is a source bundle for three prepared workspaces, not a s
 
 | Path | Purpose |
 | --- | --- |
-| `versions/current` | Current MIMO Work desktop app source. This is the main development snapshot. |
+| `versions/macos-intel` | Mac Intel desktop app source and x64 build workspace. |
 | `versions/macos-apple-silicon` | Independent Apple Silicon macOS build workspace. |
 | `versions/windows` | Independent Windows build workspace. |
 
 Each version is self-contained and has its own `package.json`, Electron/Vite config, scripts, resources, and desktop source tree.
 
 Generated installers, build outputs, dependency folders, logs, caches, local environment files, and local secret files are intentionally excluded from this repository.
+
+---
+
+## Downloads
+
+Prebuilt application packages are published under [GitHub Releases](https://github.com/2830500285/MIMO-Work/releases).
+
+The first release provides separate downloads for macOS Apple Silicon, macOS Intel, and Windows x64. The release assets are intentionally not committed into the source tree.
 
 ---
 
@@ -50,7 +58,7 @@ MIMO-Work/
   README.md
   README.zh.md
   versions/
-    current/
+    macos-intel/
       src/
         main/           Electron main process, runtime host, IPC, services
         preload/        Renderer bridge
@@ -77,10 +85,10 @@ Why the GitHub root looks small:
 
 ## Quick Start
 
-Use the current desktop workspace for normal development:
+Use the Mac Intel desktop workspace for normal development:
 
 ```bash
-cd versions/current
+cd versions/macos-intel
 npm install
 npm run dev
 ```
