@@ -1,4 +1,8 @@
-# MIMO Work
+<h1 align="center">MIMO Work</h1>
+
+<p align="center">
+  <img src="assets/mimo-work-wordmark.png" alt="MIMO Work" width="435">
+</p>
 
 <p align="center"><strong>基于 MiMo-Code runtime 的桌面 AI 软件工程工作台。</strong></p>
 
