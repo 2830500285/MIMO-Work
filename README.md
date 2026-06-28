@@ -42,6 +42,14 @@ The first release provides separate downloads for macOS Apple Silicon, macOS Int
 
 ---
 
+## Contributions
+
+MIMO Work is in an early public release stage and is not yet polished in every area. Some features, platform builds, runtime integrations, and documentation may still be incomplete.
+
+Issues and pull requests are welcome. Bug reports, packaging fixes, provider/runtime compatibility improvements, documentation updates, and platform-specific validation are especially helpful.
+
+---
+
 ## Core Capabilities
 
 - **MiMo-first provider flow**: supports Xiaomi MiMo recharge mode, Tokenplan mode, and custom OpenAI-compatible providers.
